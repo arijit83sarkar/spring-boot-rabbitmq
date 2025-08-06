@@ -5,10 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class SpringBootRabbitmqApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(SpringBootRabbitmqApplication.class, args);
         System.out.println("Spring Boot with RabbitMQ application has started......");
     }
-
 }

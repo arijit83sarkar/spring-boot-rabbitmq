@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: advanced-rabbitmq-producer-consumer
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        # Enable retries for consumers
+        retry:
+          enabled: true
+          initial-interval: 1000ms # 1 second initial delay
+          max-attempts: 3         # Max 3 attempts before dead-lettering
+          max-interval: 10000ms   # Max 10 seconds between retries
+          multiplier: 2.0         # Exponential backoff (1s, 2s, 4s)
+        # Crucial: If message processing fails after retries, don't re-queue to the original queue.
+        # Instead, let it go to the DLQ.
+        default-requeue-rejected: false
+        # Configure concurrent consumers for better throughput
+        concurrency: 2
+        max-concurrency: 5
+        prefetch: 1 # Number of messages to prefetch from the queue. Low value for critical/long-running tasks.
+
+rabbitmq:
+  exchange: app.events.direct
+  dead-letter:
+    exchange: dlx.app.events
+    queue-name: dlq.failed.messages
+    routing-key: failed.message
+  user-profile:
+    name: q.user.profile.updates
+    routing-key: event.user.profile
+    priority: 10 # Max priority for this queue
+  product-inventory:
+    name: q.product.inventory.alerts
+    routing-key: event.product.inventory
+    priority: 5
+  order-processing:
+    name: q.order.processing.events
+    routing-key: event.order.processing
+    priority: 8
+  system-notification:
+    name: q.system.notifications
+    routing-key: event.system.notification
+    priority: 3
